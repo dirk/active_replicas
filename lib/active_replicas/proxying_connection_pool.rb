@@ -6,17 +6,18 @@ module ActiveReplicas
   # to primary connections based on heuristics or overrides.
   class ProxyingConnectionPool
     def initialize(proxy_configuration)
-      # Creates new `ActiveRecord::ConnectionAdapters::ConnectionSpecification`
-      # instances for the connection pools to use.
       resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new({})
-      specification = ->(spec) {
-        resolver.spec(spec)
+      new_connection_pool = ->(config_spec) {
+        # Turns a hash configuration into a `ConnectionSpecification` that can
+        # be passed to a `ConnectionPool`.
+        spec = resolver.spec config_spec.with_indifferent_access
+        ActiveRecord::ConnectionAdapters::ConnectionPool.new spec
       }
 
-      @primary_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new specification.(proxy_configuration[:primary])
+      @primary_pool = new_connection_pool.(proxy_configuration[:primary])
 
       @replica_pools = (proxy_configuration[:replicas] || {}).map do |name, config_spec|
-        [ name, specification.(config_spec) ]
+        [ name, new_connection_pool.(config_spec) ]
       end.to_h
 
       # Calls to `with_primary` will increment and decrement this.
