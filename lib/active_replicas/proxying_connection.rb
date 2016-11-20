@@ -26,26 +26,13 @@ module ActiveReplicas
       # Partially cribbed from:
       #    https://github.com/kickstarter/replica_pools/blob/master/lib/replica_pools/connection_proxy.rb#L20
       def generate_replica_delegations
-        delegations = [
-          :active?, :clear_query_cache, :columns, :disable_query_cache!,
-          :disconnect!, :enable_query_cache!, :query_cache_enabled,
-          :raw_connection, :reconnect!, :sanitize_limit, :schema_cache,
-          :select, :select_all, :select_one, :select_rows, :select_value,
-          :select_values, :substitute_at, :to_sql, :verify!
-        ]
-
-        delegations.each do |method|
+        Railtie.replica_delegated_methods.each do |method|
           generate_delegation method, :replica
         end
       end
 
       def generate_primary_delegations
-        delegations = [
-          :insert, :next_sequence_value, :prefetch_primary_key?,
-          :transaction, :transaction_state, :update
-        ]
-
-        delegations.each do |method|
+        Railtie.primary_delegated_methods.each do |method|
           generate_delegation method, :primary
         end
       end
