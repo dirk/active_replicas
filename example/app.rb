@@ -31,7 +31,22 @@ end
 
 class UsersController < ActionController::Base
   def index
-    render text: User.all.map(&:email).join(',')
+    # Will go to the primary but will let subsequent queries use replicas.
+    count = User.connection.with_primary { User.count }
+
+    # Will go to a replica.
+    users = User.all.map(&:email)
+
+    User.transaction do
+      # This will go to the primary.
+      User.create! email: Time.now.to_s
+    end
+
+    # Will also go to the primary since we didn't explicitly use the
+    # `with_primary` wrapper.
+    last_user = User.last&.email
+
+    render text: { count: count, users: users, last_user: last_user }.inspect
   end
 end
 
