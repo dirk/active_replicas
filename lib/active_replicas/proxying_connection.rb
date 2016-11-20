@@ -22,6 +22,10 @@ module ActiveReplicas
       end
     end
 
+    def with_primary
+      @proxy.with_primary { yield }
+    end
+
     class << self
       # Partially cribbed from:
       #    https://github.com/kickstarter/replica_pools/blob/master/lib/replica_pools/connection_proxy.rb#L20
