@@ -76,7 +76,7 @@ module ActiveReplicas
 
       yield connection
     ensure
-      @primary_pool = [@primary_depth - 1, 0].max
+      @primary_depth = [@primary_depth - 1, 0].max
       @current_pool = previous_pool
     end
 
