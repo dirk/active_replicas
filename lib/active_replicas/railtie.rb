@@ -6,11 +6,12 @@ module ActiveReplicas
     cattr_accessor :primary_delegated_methods
 
     @@replica_delegated_methods = [
-      :active?, :clear_query_cache, :columns, :disable_query_cache!,
-      :disconnect!, :enable_query_cache!, :query_cache_enabled,
-      :raw_connection, :reconnect!, :sanitize_limit, :schema_cache,
-      :select, :select_all, :select_one, :select_rows, :select_value,
-      :select_values, :substitute_at, :to_sql, :verify!
+      :active?, :clear_query_cache, :column_name_for_operation, :columns,
+      :disable_query_cache!, :disconnect!, :enable_query_cache!,
+      :query_cache_enabled, :quote_column_name, :quote_table_name,
+      :raw_connection, :reconnect!, :sanitize_limit, :schema_cache, :select,
+      :select_all, :select_one, :select_rows, :select_value, :select_values,
+      :substitute_at, :to_sql, :verify!
     ]
 
     @@primary_delegated_methods = [
