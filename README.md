@@ -29,3 +29,7 @@ ActiveReplicas::Railtie.hijack_active_record primary: { url: 'mysql2://user@prim
 Bug reports and pull requests are welcome on [GitHub][]. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 [GitHub]: https://github.com/dirk/active_replicas
+
+## License
+
+Licensed under the 3-clause BSD license. See [LICENSE](LICENSE) for details.
