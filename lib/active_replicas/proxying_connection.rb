@@ -6,6 +6,9 @@ module ActiveReplicas
       @proxy      = proxy
     end
 
+    # Forwards a call to its own connection or back up to the proxy pool's
+    # primary connection.
+    #
     # role   - Either `:primary` or `:replica`: indicates which database role
     #          is necessary to execute this command.
     # method - Symbol of method to send to a connection.
@@ -22,8 +25,16 @@ module ActiveReplicas
       end
     end
 
+    # Helper method to easily use the primary pool from any model:
+    #
+    #   MyModel.connection.with_primary { ... }
     def with_primary
       @proxy.with_primary { yield }
+    end
+
+    # Returns the underlying proxied database connection.
+    def proxied_connection
+      @connection
     end
 
     class << self

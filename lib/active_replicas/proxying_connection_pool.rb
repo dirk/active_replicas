@@ -49,6 +49,10 @@ module ActiveReplicas
 
     def release_connection
       each_pool &:release_connection
+
+      @primary_depth = 0
+      @current_pool = nil
+      @connections.clear
     end
 
     def connected?
@@ -89,20 +93,12 @@ module ActiveReplicas
     #   `clear_active_connections!` is called! If you want to *temporarily*
     #   use the primary then explicitly do so using `with_primary`.
     def primary_connection
-      if @connections.key? @primary_pool
-        conn = @connections[@primary_pool]
-      else
+      if @primary_depth == 0
         @primary_depth += 1
         @current_pool = @primary_pool
-        conn = connection
       end
 
-      conn
-    end
-
-    def reset_primary_status
-      @primary_depth = 0
-      @current_pool  = nil
+      connection
     end
 
     def each_pool

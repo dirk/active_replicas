@@ -20,7 +20,6 @@ module ActiveReplicas
 
     def clear_active_connections!
       proxying_connection_pool.release_connection
-      proxying_connection_pool.reset_primary_status
     end
 
     # Cribbed from:
