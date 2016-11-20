@@ -27,10 +27,11 @@ module ActiveReplicas
       #    https://github.com/kickstarter/replica_pools/blob/master/lib/replica_pools/connection_proxy.rb#L20
       def generate_replica_delegations
         delegations = [
-          :active?, :columns, :disconnect!, :log, :log_info, :raw_connection,
-          :reconnect!, :reset_runtime, :sanitize_limit, :schema_cache, :select,
-          :select_all, :select_one, :select_rows, :select_value, :select_values,
-          :substitute_at, :to_sql, :verify!
+          :active?, :clear_query_cache, :columns, :disable_query_cache!,
+          :disconnect!, :enable_query_cache!, :query_cache_enabled,
+          :raw_connection, :reconnect!, :sanitize_limit, :schema_cache,
+          :select, :select_all, :select_one, :select_rows, :select_value,
+          :select_values, :substitute_at, :to_sql, :verify!
         ]
 
         delegations.each do |method|
