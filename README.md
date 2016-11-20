@@ -1,36 +1,31 @@
 # ActiveReplicas
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/active_replicas`. To experiment with that code, run `bin/console` for an interactive prompt.
+Allows you to automatically send read-only queries to replica databases; writes will automatically go to the primary and "stick" the request into using the primary for any further queries.
 
-TODO: Delete this and the text above, and describe your gem
+This is heavily inspired by [Kickstarter's `replica_pools`](https://github.com/kickstarter/replica_pools) gem. It seeks to improve on that gem by better interfacing with ActiveRecord's connection pools.
 
-## Installation
+## Installation & usage
 
-Add this line to your application's Gemfile:
+ActiveReplicas injects itself into ActiveRecord. To start you'll want to add it to your application's `Gemfile`:
 
 ```ruby
 gem 'active_replicas'
 ```
 
-And then execute:
+You then need to instruct it as to which connection to use for the primary and which connection(s) to use for the read replicas:
 
-    $ bundle
+```ruby
+# config/initializers/active_replicas.rb
+ActiveReplicas::Railtie.hijack_active_record primary: { url: 'mysql2://user@primary/my_app' },
+                                             replicas: {
+                                               replica0: { url: 'mysql2://user@replica/my_app' }
+                                             }
+```
 
-Or install it yourself as:
-
-    $ gem install active_replicas
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+**Note**: ActiveReplicas does not do anything automatically. It only injects itself into ActiveRecord when you tell it do so (see above).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/active_replicas. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on [GitHub][]. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
+[GitHub]: https://github.com/dirk/active_replicas
