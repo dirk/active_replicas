@@ -5,6 +5,8 @@ module ActiveReplicas
   # Also hanldes the internal state of switching back and forth from replica
   # to primary connections based on heuristics or overrides.
   class ProxyingConnectionPool
+    attr_reader :primary_pool, :replica_pools
+
     def initialize(proxy_configuration)
       resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new({})
       new_connection_pool = ->(config_spec) {
@@ -98,12 +100,35 @@ module ActiveReplicas
       conn
     end
 
+    def reset_primary_status
+      @primary_depth = 0
+      @current_pool  = nil
+    end
+
     def each_pool
       yield @primary_pool
 
       @replica_pools.each do |_name, pool|
         yield pool
       end
+    end
+
+    def pool_which_owns_connection(object_id)
+      return @primary_pool if @primary_pool.connections.any? { |c| c.object_id == object_id }
+
+      @replica_pools.values.each do |pool|
+        return pool if pool.connections.any? { |c| c.object_id == object_id }
+      end
+
+      nil
+    end
+
+    def primary_pool?(pool)
+      pool == @primary_pool
+    end
+
+    def replica_pool?(pool)
+      @replica_pools.values.include? pool
     end
 
     private

@@ -19,7 +19,8 @@ module ActiveReplicas
     end
 
     def clear_active_connections!
-      local_proxying_connection_pool.release_connection
+      proxying_connection_pool.release_connection
+      proxying_connection_pool.reset_primary_status
     end
 
     # Cribbed from:
@@ -33,7 +34,7 @@ module ActiveReplicas
     end
 
     def retrieve_connection_pool(klass)
-      local_proxying_connection_pool
+      proxying_connection_pool
     end
 
     def connected?(klass)
@@ -41,9 +42,7 @@ module ActiveReplicas
       pool && pool.connected?
     end
 
-    private
-
-    def local_proxying_connection_pool
+    def proxying_connection_pool
       @process_to_connection_pool[Process.pid] ||= ProxyingConnectionPool.new(@proxy_configuration)
     end
   end

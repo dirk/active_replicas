@@ -32,6 +32,9 @@ module ActiveReplicas
           ActiveReplicas::Railtie.connection_handler
         end
       end
+
+      # Take over logging duties now that we're the main connection handler.
+      LogSubscriber.hijack_active_record
     end
   end
 end
