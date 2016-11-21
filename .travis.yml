@@ -3,12 +3,7 @@ language: ruby
 rvm:
   - 2.3.1
   - 2.3.2
-env:
-  - APPRAISAL=rails-4
+gemfile:
+  - gemfiles/rails_4.gemfile
 
-before_install:
-  - gem install bundler -v 1.13.6
-  - gem install appraisal -v 2.1.0
-install: appraisal install
-
-script: appraisal $APPRAISAL rspec
+script: rspec
