@@ -1,5 +1,12 @@
 sudo: false
 language: ruby
 rvm:
+  - 2.3.1
   - 2.3.2
+env:
+  - APPRAISAL=rails-4
+
 before_install: gem install bundler -v 1.13.6
+install: bundle exec appraisal install
+
+script: bundle exec appraisal $APPRAISAL rspec
