@@ -6,7 +6,9 @@ rvm:
 env:
   - APPRAISAL=rails-4
 
-before_install: gem install bundler -v 1.13.6
-install: bundle exec appraisal install
+before_install:
+  - gem install bundler -v 1.13.6
+  - gem install appraisal -v 2.1.0
+install: appraisal install
 
-script: bundle exec appraisal $APPRAISAL rspec
+script: appraisal $APPRAISAL rspec
