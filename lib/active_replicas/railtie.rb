@@ -25,7 +25,7 @@ module ActiveReplicas
         :clear_query_cache, :column_name_for_operation, :columns,
         :disable_query_cache!, :disconnect!, :enable_query_cache!,
         :exec_query, :prepared_statements, :query_cache_enabled, :quote,
-        :quote_column_name, :quote_table_name,
+        :quote_column_name, :quote_string, :quote_table_name,
         :quote_table_name_for_assignment, :raw_connection, :reconnect!,
         :sanitize_limit, :schema_cache, :select, :select_all, :select_one,
         :select_rows, :select_value, :select_values, :substitute_at,
