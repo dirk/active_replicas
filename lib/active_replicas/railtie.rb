@@ -29,7 +29,7 @@ module ActiveReplicas
         :quote_table_name_for_assignment, :raw_connection, :reconnect!,
         :sanitize_limit, :schema_cache, :select, :select_all, :select_one,
         :select_rows, :select_value, :select_values, :substitute_at, :to_sql,
-        :type_cast, :uncached, :valid_type?, :verify!
+        :type_cast, :uncached, :valid_type?, :verify!, :visitor
       ]
     ).uniq
 
@@ -67,11 +67,11 @@ module ActiveReplicas
       SUPPORTS_METHODS +
       [
         :add_transaction_record, :assume_migrated_upto_version,
-        :begin_db_transaction, :commit_db_transaction,
+        :begin_transaction, :begin_db_transaction, :commit_db_transaction,
         :disable_referential_integrity, :foreign_keys, :indexes,
         :native_database_types, :prefetch_primary_key?, :primary_key,
-        :rollback_db_transaction, :tables, :table_exists?, :transaction,
-        :transaction_state
+        :rollback_transaction, :rollback_db_transaction, :tables,
+        :table_exists?, :transaction, :transaction_state
       ]
     ).uniq
 
