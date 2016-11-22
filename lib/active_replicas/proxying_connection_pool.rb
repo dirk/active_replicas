@@ -1,3 +1,5 @@
+require 'active_support/hash_with_indifferent_access'
+
 module ActiveReplicas
   # Manages connection pools to the primary and replica databases. Returns
   # proxy connection instances from those pools on request.
@@ -30,7 +32,7 @@ module ActiveReplicas
 
       # Turns a hash configuration into a `ConnectionSpecification` that can
       # be passed to a `ConnectionPool`.
-      spec = @@resolver.spec config_spec.with_indifferent_access
+      spec = @@resolver.spec ActiveSupport::HashWithIndifferentAccess.new(config_spec)
 
       ActiveRecord::ConnectionAdapters::ConnectionPool.new spec
     end
@@ -73,6 +75,12 @@ module ActiveReplicas
       end
 
       @current_pool
+    end
+
+    def automatic_reconnect=(new_value)
+      each_pool do |pool|
+        pool.automatic_reconnect = new_value
+      end
     end
 
     # Additional methods

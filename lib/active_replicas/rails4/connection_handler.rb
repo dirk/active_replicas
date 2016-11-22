@@ -15,8 +15,8 @@ module ActiveReplicas
         @process_to_connection_pool = Concurrent::Map.new
       end
 
-      def establish_connection(owner, _spec)
-        raise "ActiveReplicas cannot establish connection for #{owner.name}"
+      def establish_connection(owner, spec)
+        proxying_connection_pool
       end
 
       def clear_active_connections!
@@ -43,10 +43,10 @@ module ActiveReplicas
       end
 
       def remove_connection(owner_klass)
-        if pool = @process_to_connection_pool.delete(Process.pid)
-          pool.automatic_reconnect = false
-          pool.disconnect!
-          pool.spec.config
+        if proxying_pool = @process_to_connection_pool.delete(Process.pid)
+          proxying_pool.automatic_reconnect = false
+          proxying_pool.disconnect!
+          proxying_pool.primary_pool.spec.config
         end
       end
 
