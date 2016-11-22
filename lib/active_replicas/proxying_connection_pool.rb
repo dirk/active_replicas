@@ -25,7 +25,7 @@ module ActiveReplicas
 
     # Returns an instance of `ActiveRecord::ConnectionAdapters::ConnectionPool`
     # configured with the given specification.
-    def self.connection_pool_for_spec(spec)
+    def self.connection_pool_for_spec(config_spec)
       @@resolver ||= ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new({})
 
       # Turns a hash configuration into a `ConnectionSpecification` that can
