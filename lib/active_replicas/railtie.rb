@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute_accessors'
+
 module ActiveReplicas
   class Railtie < Rails::Railtie
     cattr_reader :connection_handler
