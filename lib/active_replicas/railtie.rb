@@ -49,9 +49,10 @@ module ActiveReplicas
       CRUD_METHODS +
       SUPPORTS_METHODS +
       [
-        :assume_migrated_upto_version, :foreign_keys, :native_database_types,
-        :next_sequence_value, :prefetch_primary_key?, :tables,
-        :table_exists?, :transaction, :transaction_state
+        :assume_migrated_upto_version, :column_spec, :foreign_keys,
+        :indexes, :migration_keys, :native_database_types,
+        :next_sequence_value, :prefetch_primary_key?, :primary_key, :tables,
+        :table_exists?, :transaction, :transaction_state, :valid_type?
       ]
     ).uniq
 
