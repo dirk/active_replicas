@@ -30,7 +30,7 @@ module ActiveReplicas
 
     # Rails methods that deal with create, read, update, delete in SQL
     CRUD_METHODS = [
-      :delete, :insert, :truncate, :update
+      :delete, :insert, :next_sequence_value, :truncate, :update
     ]
 
     # Rails methods that query whether or not the adapter or database engine
@@ -51,8 +51,8 @@ module ActiveReplicas
       [
         :assume_migrated_upto_version, :column_spec, :foreign_keys,
         :indexes, :migration_keys, :native_database_types,
-        :next_sequence_value, :prefetch_primary_key?, :primary_key, :tables,
-        :table_exists?, :transaction, :transaction_state, :valid_type?
+        :prefetch_primary_key?, :primary_key, :tables, :table_exists?,
+        :transaction, :transaction_state, :valid_type?
       ]
     ).uniq
 

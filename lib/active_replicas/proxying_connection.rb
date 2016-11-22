@@ -4,6 +4,10 @@ module ActiveReplicas
       @connection = connection
       @is_primary = is_primary
       @proxy      = proxy
+
+      # NOTE: This is to support the `database_cleaner gem`:
+      #   https://github.com/DatabaseCleaner/database_cleaner/blob/ba3664a/lib/database_cleaner/active_record/deletion.rb#L56
+      @config = @connection.instance_variable_get(:@config)
     end
 
     # Forwards a call to its own connection or back up to the proxy pool's

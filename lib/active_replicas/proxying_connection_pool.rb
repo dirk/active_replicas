@@ -90,6 +90,10 @@ module ActiveReplicas
       end
     end
 
+    def connections
+      @primary_pool.connections
+    end
+
     def spec
       @primary_pool.spec
     end
