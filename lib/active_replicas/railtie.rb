@@ -5,14 +5,17 @@ module ActiveReplicas
     cattr_accessor :replica_delegated_methods
     cattr_accessor :primary_delegated_methods
 
-    @@replica_delegated_methods = [
-      :active?, :clear_query_cache, :column_name_for_operation, :columns,
-      :disable_query_cache!, :disconnect!, :enable_query_cache!,
-      :query_cache_enabled, :quote_column_name, :quote_table_name,
-      :raw_connection, :reconnect!, :sanitize_limit, :schema_cache, :select,
-      :select_all, :select_one, :select_rows, :select_value, :select_values,
-      :substitute_at, :to_sql, :verify!
-    ]
+    # All the methods which are safe to be delegated to a replica.
+    @@replica_delegated_methods = (
+      [
+        :active?, :clear_query_cache, :column_name_for_operation, :columns,
+        :disable_query_cache!, :disconnect!, :enable_query_cache!,
+        :query_cache_enabled, :quote_column_name, :quote_table_name,
+        :raw_connection, :reconnect!, :sanitize_limit, :schema_cache, :select,
+        :select_all, :select_one, :select_rows, :select_value, :select_values,
+        :substitute_at, :to_sql, :verify!
+      ]
+    ).uniq
 
     # Rails methods that translate to SQL DDL (data definition language).
     DDL_METHODS = [
@@ -30,12 +33,25 @@ module ActiveReplicas
       :delete, :insert, :truncate, :update
     ]
 
+    # Rails methods that query whether or not the adapter or database engine
+    # supports a given feature.
+    SUPPORTS_METHODS = [
+      :supports_ddl_transactions?, :supports_explain?, :supports_extensions?,
+      :supports_foreign_keys?, :supports_index_sort_order?,
+      :supports_materialized_views?, :supports_migrations?,
+      :supports_partial_index?, :supports_primary_key?, :supports_ranges?,
+      :supports_statement_cache?, :supports_transaction_isolation?,
+      :supports_views?
+    ]
+
     @@primary_delegated_methods = (
       DDL_METHODS +
       CRUD_METHODS +
+      SUPPORTS_METHODS +
       [
-        :next_sequence_value, :prefetch_primary_key?, :transaction,
-        :transaction_state
+        :assume_migrated_upto_version, :foreign_keys, :native_database_types,
+        :next_sequence_value, :prefetch_primary_key?, :tables,
+        :table_exists?, :transaction, :transaction_state
       ]
     ).uniq
 
