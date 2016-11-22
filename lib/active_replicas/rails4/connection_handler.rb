@@ -5,6 +5,8 @@ module ActiveReplicas
     # Wraps around Rails' `ActiveRecord::ConnectionAdapters::ConnectionHandler`
     # to provide proxy wrappers around requested connections.
     class ConnectionHandler
+      attr_accessor :proxy_configuration
+
       def initialize(proxy_configuration:, delegate: nil, overrides: nil)
         @proxy_configuration = proxy_configuration
         # @delegate          = delegate
@@ -47,6 +49,10 @@ module ActiveReplicas
       end
 
       def remove_connection(owner_klass)
+        remove_proxying_connection_pool
+      end
+
+      def remove_proxying_connection_pool
         if proxying_pool = @process_to_connection_pool.delete(Process.pid)
           proxying_pool.automatic_reconnect = false
           proxying_pool.disconnect!
