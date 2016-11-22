@@ -1,7 +1,7 @@
 PATH
   remote: ../
   specs:
-    active_replicas (0.1.4)
+    active_replicas (0.1.5)
       concurrent-ruby (~> 1.0)
 
 GEM
