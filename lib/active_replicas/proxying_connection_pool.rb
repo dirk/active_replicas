@@ -61,6 +61,10 @@ module ActiveReplicas
       @connections.clear
     end
 
+    def with_connection(&block)
+      current_pool.with_connection(&block)
+    end
+
     def connected?
       current_pool.connected?
     end
