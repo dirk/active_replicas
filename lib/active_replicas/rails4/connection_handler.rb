@@ -42,6 +42,14 @@ module ActiveReplicas
         pool && pool.connected?
       end
 
+      def remove_connection(owner_klass)
+        if pool = @process_to_connection_pool.delete(Process.pid)
+          pool.automatic_reconnect = false
+          pool.disconnect!
+          pool.spec.config
+        end
+      end
+
       def proxying_connection_pool
         @process_to_connection_pool[Process.pid] ||= ProxyingConnectionPool.new(@proxy_configuration)
       end
