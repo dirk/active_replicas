@@ -7,8 +7,8 @@ module ActiveReplicas
     class ConnectionHandler
       def initialize(proxy_configuration:, delegate: nil, overrides: nil)
         @proxy_configuration = proxy_configuration
-        @delegate            = delegate
-        @overrides           = Set.new(overrides || [])
+        # @delegate          = delegate
+        # @overrides         = Set.new(overrides || [])
 
         # Each process will get its own map of connection keys to database
         # connection instances.
