@@ -28,8 +28,9 @@ module ActiveReplicas
         :quote_column_name, :quote_table_name,
         :quote_table_name_for_assignment, :raw_connection, :reconnect!,
         :sanitize_limit, :schema_cache, :select, :select_all, :select_one,
-        :select_rows, :select_value, :select_values, :substitute_at, :to_sql,
-        :type_cast, :uncached, :valid_type?, :verify!, :visitor
+        :select_rows, :select_value, :select_values, :substitute_at,
+        :table_alias_for, :to_sql, :type_cast, :uncached, :valid_type?,
+        :verify!, :visitor
       ]
     ).uniq
 
