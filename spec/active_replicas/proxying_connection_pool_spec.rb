@@ -56,4 +56,32 @@ describe ActiveReplicas::ProxyingConnectionPool do
       end
     end
   end
+
+  describe '#with_primary' do
+    before do
+      @replica_connection = double 'replica connection'
+      @replica_pool.stub connection: @replica_connection
+
+      @primary_connection = double 'primary connection'
+      @primary_pool.stub connection: @primary_connection
+    end
+
+    it 'switches to the primary pool' do
+      expect(@subject.current_pool).to eq @replica_pool
+
+      @subject.with_primary do
+        expect(@subject.current_pool).to eq @primary_pool
+      end
+    end
+
+    it 'restores the current pool afterwards' do
+      expect(@subject.current_pool).to eq @replica_pool
+
+      @subject.with_primary do
+        nil # pass
+      end
+
+      expect(@subject.current_pool).to eq @replica_pool
+    end
+  end
 end
