@@ -7,8 +7,18 @@ module ActiveReplicas
     cattr_accessor :replica_delegated_methods
     cattr_accessor :primary_delegated_methods
 
+    # Reports what the database can handle, see URL for more information:
+    #   https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/abstract/database_limits.rb
+    DATABASE_LIMITS_METHODS = [
+      :allowed_index_name_length, :column_name_length,
+      :columns_per_multicolumn_index, :columns_per_table, :in_clause_length,
+      :index_name_length, :indexes_per_table, :joins_per_query,
+      :sql_query_length, :table_alias_length, :table_name_length
+    ]
+
     # All the methods which are safe to be delegated to a replica.
     @@replica_delegated_methods = (
+      DATABASE_LIMITS_METHODS +
       [
         :active?, :cacheable_query, :case_sensitive_comparison,
         :case_sensitive_modifier, :case_insensitive_comparison,
