@@ -14,10 +14,30 @@ module ActiveReplicas
       :substitute_at, :to_sql, :verify!
     ]
 
-    @@primary_delegated_methods = [
-      :insert, :next_sequence_value, :prefetch_primary_key?,
-      :transaction, :transaction_state, :update
+    # Rails methods that translate to SQL DDL (data definition language).
+    DDL_METHODS = [
+      :add_column, :add_foreign_key, :add_index, :add_reference,
+      :add_timestamps, :change_column, :change_column_default,
+      :change_column_null, :create_join_table, :create_table,
+      :drop_join_table, :drop_table, :enable_extension,
+      :execute, :execute_block, :remove_column, :remove_columns,
+      :remove_foreign_key, :remove_index, :remove_reference,
+      :remove_timestamps, :rename_column, :rename_index, :rename_table
     ]
+
+    # Rails methods that deal with create, read, update, delete in SQL
+    CRUD_METHODS = [
+      :delete, :insert, :truncate, :update
+    ]
+
+    @@primary_delegated_methods = (
+      DDL_METHODS +
+      CRUD_METHODS +
+      [
+        :next_sequence_value, :prefetch_primary_key?, :transaction,
+        :transaction_state
+      ]
+    ).uniq
 
     def self.hijack_active_record(proxy_configuration, overrides: [])
       ProxyingConnection.generate_replica_delegations
