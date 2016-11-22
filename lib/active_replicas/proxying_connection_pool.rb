@@ -8,18 +8,10 @@ module ActiveReplicas
     attr_reader :primary_pool, :replica_pools
 
     def initialize(proxy_configuration)
-      resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new({})
-      new_connection_pool = ->(config_spec) {
-        # Turns a hash configuration into a `ConnectionSpecification` that can
-        # be passed to a `ConnectionPool`.
-        spec = resolver.spec config_spec.with_indifferent_access
-        ActiveRecord::ConnectionAdapters::ConnectionPool.new spec
-      }
-
-      @primary_pool = new_connection_pool.(proxy_configuration[:primary])
+      @primary_pool = ProxyingConnectionPool.connection_pool_for_spec proxy_configuration[:primary]
 
       @replica_pools = (proxy_configuration[:replicas] || {}).map do |name, config_spec|
-        [ name, new_connection_pool.(config_spec) ]
+        [ name, ProxyingConnectionPool.connection_pool_for_spec(config_spec) ]
       end.to_h
 
       # Calls to `with_primary` will increment and decrement this.
@@ -29,6 +21,18 @@ module ActiveReplicas
       # Thread-safe map of the connections from each pool. Cleared in tandem
       # with the connection pools.
       @connections = Concurrent::Map.new
+    end
+
+    # Returns an instance of `ActiveRecord::ConnectionAdapters::ConnectionPool`
+    # configured with the given specification.
+    def self.connection_pool_for_spec(spec)
+      @@resolver ||= ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new({})
+
+      # Turns a hash configuration into a `ConnectionSpecification` that can
+      # be passed to a `ConnectionPool`.
+      spec = @@resolver.spec config_spec.with_indifferent_access
+
+      ActiveRecord::ConnectionAdapters::ConnectionPool.new spec
     end
 
     # ConnectionPool interface methods
