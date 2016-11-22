@@ -16,7 +16,11 @@ module ActiveReplicas
       end
 
       def establish_connection(owner, spec)
-        proxying_connection_pool spec
+        prefix = '[ActiveReplicas::Rails4::ConnectionHandler#establish_connection]'
+        ActiveRecord::Base.logger.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
+        ActiveRecord::Base.logger.info "#{prefix} Called from:\n" + Kernel.caller.first(5).map {|t| "  #{t}" }.join("\n")
+
+        proxying_connection_pool
       end
 
       def clear_active_connections!
@@ -50,8 +54,8 @@ module ActiveReplicas
         end
       end
 
-      def proxying_connection_pool(spec = nil)
-        @process_to_connection_pool[Process.pid] ||= ProxyingConnectionPool.new(spec || @proxy_configuration)
+      def proxying_connection_pool
+        @process_to_connection_pool[Process.pid] ||= ProxyingConnectionPool.new(@proxy_configuration)
       end
     end
   end
