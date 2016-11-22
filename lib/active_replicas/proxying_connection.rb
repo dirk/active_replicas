@@ -20,7 +20,7 @@ module ActiveReplicas
       if @is_primary
         @connection.send method, *args, &block
       else
-        if role == :primary
+        if role == :primary || @proxy.using_primary?
           # Need to get a primary connection from the proxy pool.
           @proxy.primary_connection.send method, *args, &block
         else

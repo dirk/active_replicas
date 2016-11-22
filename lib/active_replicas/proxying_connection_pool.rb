@@ -113,6 +113,10 @@ module ActiveReplicas
       @current_pool = previous_pool
     end
 
+    def using_primary?
+      @primary_depth > 0
+    end
+
     # Quick accessor to a primary connection.
     #
     # NOTE: If this is not already in a `with_primary` block then calling this
