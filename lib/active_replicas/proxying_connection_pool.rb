@@ -77,10 +77,17 @@ module ActiveReplicas
       @current_pool
     end
 
+    # ConnectionPool attribute readers and accessors
+    # ==============================================
+
     def automatic_reconnect=(new_value)
       each_pool do |pool|
         pool.automatic_reconnect = new_value
       end
+    end
+
+    def spec
+      @primary_pool.spec
     end
 
     # Additional methods
