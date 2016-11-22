@@ -17,8 +17,8 @@ module ActiveReplicas
 
       def establish_connection(owner, spec)
         prefix = '[ActiveReplicas::Rails4::ConnectionHandler#establish_connection]'
-        ActiveRecord::Base.logger.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
-        ActiveRecord::Base.logger.info "#{prefix} Called from:\n" + Kernel.caller.first(5).map {|t| "  #{t}" }.join("\n")
+        ActiveRecord::Base.logger&.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
+        ActiveRecord::Base.logger&.info "#{prefix} Called from:\n" + Kernel.caller.first(5).map {|t| "  #{t}" }.join("\n")
 
         proxying_connection_pool
       end
