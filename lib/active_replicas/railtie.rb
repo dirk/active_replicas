@@ -19,9 +19,9 @@ module ActiveReplicas
       :add_column, :add_foreign_key, :add_index, :add_reference,
       :add_timestamps, :change_column, :change_column_default,
       :change_column_null, :create_join_table, :create_table,
-      :drop_join_table, :drop_table, :enable_extension,
-      :execute, :execute_block, :remove_column, :remove_columns,
-      :remove_foreign_key, :remove_index, :remove_reference,
+      :drop_join_table, :drop_table, :enable_extension, :execute,
+      :execute_block, :initialize_schema_migrations_table, :remove_column,
+      :remove_columns, :remove_foreign_key, :remove_index, :remove_reference,
       :remove_timestamps, :rename_column, :rename_index, :rename_table
     ]
 
