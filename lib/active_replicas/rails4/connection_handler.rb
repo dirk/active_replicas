@@ -33,6 +33,10 @@ module ActiveReplicas
         proxying_connection_pool.release_connection
       end
 
+      def clear_reloadable_connections!
+        proxying_connection_pool.clear_reloadable_connections!
+      end
+
       # Cribbed from:
       #   https://github.com/rails/rails/blob/4-2-stable/activerecord/lib/active_record/connection_adapters/abstract/connection_pool.rb#L568
       def retrieve_connection(klass)

@@ -76,6 +76,12 @@ module ActiveReplicas
       end
     end
 
+    def clear_reloadable_connections!
+      synchronize do
+        each_pool &:clear_reloadable_connections!
+      end
+    end
+
     def current_pool
       if @current_pool == nil
         @current_pool = next_pool
