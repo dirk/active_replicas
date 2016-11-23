@@ -17,6 +17,10 @@ module ActiveReplicas
         @process_to_connection_pool = Concurrent::Map.new
       end
 
+      def connection_pool_list
+        [ @process_to_connection_pool[Process.pid] ].compact
+      end
+
       def establish_connection(owner, spec)
         prefix = '[ActiveReplicas::Rails4::ConnectionHandler#establish_connection]'
         ActiveRecord::Base.logger&.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
