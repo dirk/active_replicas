@@ -1,3 +1,4 @@
+require 'monitor'
 require 'active_support/hash_with_indifferent_access'
 
 module ActiveReplicas
@@ -23,6 +24,8 @@ module ActiveReplicas
       # Thread-safe map of the connections from each pool. Cleared in tandem
       # with the connection pools.
       @connections = Concurrent::Map.new
+
+      extend MonitorMixin
     end
 
     # Returns an instance of `ActiveRecord::ConnectionAdapters::ConnectionPool`
@@ -43,22 +46,26 @@ module ActiveReplicas
     def connection
       pool = current_pool
 
-      @connections[pool] ||= begin
-        conn = pool.connection
-        return unless conn
+      @connections[pool] || synchronize do
+        @connections[pool] ||= begin
+          conn = pool.connection
+          return unless conn
 
-        ProxyingConnection.new connection: conn,
-                               is_primary: pool == @primary_pool,
-                               proxy:      self
+          ProxyingConnection.new connection: conn,
+                                 is_primary: pool == @primary_pool,
+                                 proxy:      self
+        end
       end
     end
 
     def release_connection
-      each_pool &:release_connection
+      synchronize do
+        each_pool &:release_connection
 
-      @primary_depth = 0
-      @current_pool = nil
-      @connections.clear
+        @primary_depth = 0
+        @current_pool = nil
+        @connections.clear
+      end
     end
 
     def with_connection(&block)
@@ -66,11 +73,15 @@ module ActiveReplicas
     end
 
     def connected?
-      current_pool.connected?
+      synchronize do
+        current_pool.connected?
+      end
     end
 
     def disconnect!
-      each_pool &:disconnect!
+      synchronize do
+        each_pool &:disconnect!
+      end
     end
 
     def current_pool
