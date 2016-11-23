@@ -21,9 +21,6 @@ module ActiveReplicas
       @primary_depth = 0
       # Current connection pool.
       @current_pool = nil
-      # Thread-safe map of the connections from each pool. Cleared in tandem
-      # with the connection pools.
-      @connections = Concurrent::Map.new
 
       extend MonitorMixin
     end
@@ -46,16 +43,12 @@ module ActiveReplicas
     def connection
       pool = current_pool
 
-      @connections[pool] || synchronize do
-        @connections[pool] ||= begin
-          conn = pool.connection
-          return unless conn
+      conn = pool.connection
+      return unless conn
 
-          ProxyingConnection.new connection: conn,
-                                 is_primary: pool == @primary_pool,
-                                 proxy:      self
-        end
-      end
+      ProxyingConnection.new connection: conn,
+                             is_primary: pool == @primary_pool,
+                             proxy:      self
     end
 
     def release_connection
@@ -64,7 +57,6 @@ module ActiveReplicas
 
         @primary_depth = 0
         @current_pool = nil
-        @connections.clear
       end
     end
 
