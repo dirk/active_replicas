@@ -51,6 +51,12 @@ module ActiveReplicas
                              proxy:      self
     end
 
+    def active_connection?
+      synchronize do
+        all_pools.any? { |pool| pool.active_connection? }
+      end
+    end
+
     def release_connection
       synchronize do
         each_pool &:release_connection
