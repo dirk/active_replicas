@@ -29,12 +29,20 @@ module ActiveReplicas
         proxying_connection_pool
       end
 
+      def active_connections?
+        proxying_connection_pool.active_connection?
+      end
+
       def clear_active_connections!
         proxying_connection_pool.release_connection
       end
 
       def clear_reloadable_connections!
         proxying_connection_pool.clear_reloadable_connections!
+      end
+
+      def clear_all_connections!
+        proxying_connection_pool.disconnect!
       end
 
       # Cribbed from:
