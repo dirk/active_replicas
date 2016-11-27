@@ -150,7 +150,7 @@ module ActiveReplicas
     # Returns an `Enumerable` over all the pools, primary and replicas, owned
     # by this proxying pool.
     def all_pools
-      [ @primary_pool ] + @replica_pools
+      [ @primary_pool ] + @replica_pools.values
     end
 
     def each_pool(&block)
