@@ -141,12 +141,14 @@ module ActiveReplicas
       connection
     end
 
-    def each_pool
-      yield @primary_pool
+    # Returns an `Enumerable` over all the pools, primary and replicas, owned
+    # by this proxying pool.
+    def all_pools
+      [ @primary_pool ] + @replica_pools
+    end
 
-      @replica_pools.each do |_name, pool|
-        yield pool
-      end
+    def each_pool(&block)
+      all_pools.each &block
     end
 
     def pool_which_owns_connection(object_id)
