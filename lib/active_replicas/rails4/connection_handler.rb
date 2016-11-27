@@ -55,10 +55,6 @@ module ActiveReplicas
         conn
       end
 
-      def retrieve_connection_pool(klass)
-        proxying_connection_pool
-      end
-
       def connected?(klass)
         pool = retrieve_connection_pool klass
         pool && pool.connected?
@@ -66,6 +62,10 @@ module ActiveReplicas
 
       def remove_connection(owner_klass)
         remove_proxying_connection_pool
+      end
+
+      def retrieve_connection_pool(klass)
+        proxying_connection_pool
       end
 
       def remove_proxying_connection_pool
