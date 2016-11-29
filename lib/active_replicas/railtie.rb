@@ -69,8 +69,9 @@ module ActiveReplicas
       [
         :add_transaction_record, :assume_migrated_upto_version,
         :begin_transaction, :begin_db_transaction, :commit_db_transaction,
-        :disable_referential_integrity, :foreign_keys, :indexes,
-        :native_database_types, :prefetch_primary_key?, :primary_key,
+        :create_database, :current_database, :disable_referential_integrity,
+        :drop_database, :foreign_keys, :indexes, :native_database_types,
+        :prefetch_primary_key?, :primary_key, :recreate_database,
         :rollback_transaction, :rollback_db_transaction, :tables,
         :table_exists?, :transaction, :transaction_state
       ]
