@@ -4,6 +4,9 @@ module ActiveReplicas
   module Rails4
     # Wraps around Rails' `ActiveRecord::ConnectionAdapters::ConnectionHandler`
     # to provide proxy wrappers around requested connections.
+    #
+    # This is the process-safe handler; it creates instances of
+    # `ThreadLocalConnectionHandler` to provide proxy wrappers for each thread.
     class ConnectionHandler
       attr_accessor :proxy_configuration
 
@@ -12,13 +15,52 @@ module ActiveReplicas
         # @delegate          = delegate
         # @overrides         = Set.new(overrides || [])
 
-        # Each process will get its own map of connection keys to database
-        # connection instances.
-        @process_to_connection_pool = Concurrent::Map.new
+        # Each process will get its own thread-safe handler.
+        @process_to_handler = Concurrent::Map.new
       end
 
+      delegate :active_connections?, :clear_active_connections!,
+          :clear_all_connections!, :clear_reloadable_connections!,
+          :connected?, :connection_pool_list, :establish_connection,
+          :remove_connection, :retrieve_connection, :retrieve_connection_pool,
+        to: :retrieve_handler
+
+      # Returns a `ProcessLocalConnectionHandler` which is local to the
+      # current process.
+      def retrieve_handler
+        @process_to_handler[Process.pid] ||= ProcessLocalConnectionHandler.new(self)
+      end
+    end
+
+    # Provisioned for each process by `ConnectionHandler`. Each process owns
+    # its own pools of connections to primary and replica databases.
+    # Proxying connection pools are then provisioned for each thread.
+    class ProcessLocalConnectionHandler
+      # Instance of `ConnectionHandler`.
+      attr_reader :owner
+
+      attr_reader :primary_pool, :replica_pools
+
+      def initialize(owner)
+        @owner = owner
+
+        @primary_pool = Helpers.connection_pool_for_spec proxy_configuration[:primary]
+
+        @replica_pools = (proxy_configuration[:replicas] || {}).map do |name, config_spec|
+          [name, Helpers.connection_pool_for_spec(config_spec)]
+        end.to_h
+
+        # Each thread gets its own `ProxyingConnectionPool`.
+        @reserved_proxies = Concurrent::Map.new
+
+        extend MonitorMixin
+      end
+
+      delegate :proxy_configuration, to: :owner
+
+      # Returns a list of *all* the connection pools owned by this handler.
       def connection_pool_list
-        [ @process_to_connection_pool[Process.pid] ].compact
+        [@primary_pool] + @replica_pools.values
       end
 
       def establish_connection(owner, spec)
@@ -26,23 +68,32 @@ module ActiveReplicas
         ActiveRecord::Base.logger&.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
         ActiveRecord::Base.logger&.info "#{prefix} Called from:\n" + Kernel.caller.first(5).map {|t| "  #{t}" }.join("\n")
 
-        proxying_connection_pool
+        current_proxy
       end
 
       def active_connections?
-        proxying_connection_pool.active_connection?
+        connection_pool_list.any?(&:active_connection?)
       end
 
       def clear_active_connections!
-        proxying_connection_pool.release_connection
+        synchronize do
+          connection_pool_list.each(&:release_connection)
+          clear_current_proxy
+        end
       end
 
       def clear_reloadable_connections!
-        proxying_connection_pool.clear_reloadable_connections!
+        synchronize do
+          connection_pool_list.each(&:clear_reloadable_connections!)
+          clear_proxies!
+        end
       end
 
       def clear_all_connections!
-        proxying_connection_pool.disconnect!
+        synchronize do
+          connection_pool_list.each(&:disconnect!)
+          clear_proxies!
+        end
       end
 
       # Cribbed from:
@@ -61,23 +112,39 @@ module ActiveReplicas
       end
 
       def remove_connection(owner_klass)
-        remove_proxying_connection_pool
-      end
-
-      def retrieve_connection_pool(klass)
-        proxying_connection_pool
-      end
-
-      def remove_proxying_connection_pool
-        if proxying_pool = @process_to_connection_pool.delete(Process.pid)
-          proxying_pool.automatic_reconnect = false
-          proxying_pool.disconnect!
-          proxying_pool.primary_pool.spec.config
+        if proxy = clear_current_proxy
+          proxy.automatic_reconnect = false
+          proxy.disconnect!
+          proxy.spec.config
         end
       end
 
-      def proxying_connection_pool
-        @process_to_connection_pool[Process.pid] ||= ProxyingConnectionPool.new(@proxy_configuration)
+      def retrieve_connection_pool(klass)
+        current_proxy
+      end
+
+      # Semi-private implementation methdos
+      # ===================================
+
+      # Returns the `ThreadLocalConnectionHandler` for this thread.
+      def current_proxy
+        @reserved_proxies[current_thread_id] || synchronize do
+          @reserved_proxies[current_thread_id] ||= ProxyingConnectionPool.new(self)
+        end
+      end
+
+      # Remove the current reserved `ProxyingConnectionPool` from the pool.
+      def clear_current_proxy
+        @reserved_proxies.delete current_thread_id
+      end
+
+      # Clear all reserved `ProxyingConnectionPool` instances from the pool.
+      def clear_proxies!
+        @reserved_proxies.clear
+      end
+
+      def current_thread_id
+        Thread.current.object_id
       end
     end
   end

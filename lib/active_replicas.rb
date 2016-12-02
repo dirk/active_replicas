@@ -7,6 +7,7 @@ if defined? ActiveRecord
   version = ActiveRecord::VERSION::MAJOR
 
   if version == 4
+    require 'active_replicas/rails4/helpers'
     require 'active_replicas/rails4/connection_handler'
   else
     raise "Unsupported ActiveRecord version: #{version}"
