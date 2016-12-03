@@ -25,10 +25,18 @@ module ActiveReplicas
           :remove_connection, :retrieve_connection, :retrieve_connection_pool,
         to: :retrieve_handler
 
+      def clear_all_connections!
+        # We also want to clear the process's connection handler in case our
+        # configuration has been changed.
+        if handler = @process_to_handler.delete(Process.pid)
+          handler.clear_all_connections!
+        end
+      end
+
       # Returns a `ProcessLocalConnectionHandler` which is local to the
       # current process.
       def retrieve_handler
-        @process_to_handler[Process.pid] ||= ProcessLocalConnectionHandler.new(self)
+        @process_to_handler[Process.pid] ||= ProcessLocalConnectionHandler.new(@proxy_configuration)
       end
     end
 
@@ -36,17 +44,15 @@ module ActiveReplicas
     # its own pools of connections to primary and replica databases.
     # Proxying connection pools are then provisioned for each thread.
     class ProcessLocalConnectionHandler
-      # Instance of `ConnectionHandler`.
-      attr_reader :owner
-
+      attr_reader :proxy_configuration
       attr_reader :primary_pool, :replica_pools
 
-      def initialize(owner)
-        @owner = owner
+      def initialize(proxy_configuration)
+        @proxy_configuration = proxy_configuration
 
-        @primary_pool = Helpers.connection_pool_for_spec proxy_configuration[:primary]
+        @primary_pool = Helpers.connection_pool_for_spec @proxy_configuration[:primary]
 
-        @replica_pools = (proxy_configuration[:replicas] || {}).map do |name, config_spec|
+        @replica_pools = (@proxy_configuration[:replicas] || {}).map do |name, config_spec|
           [name, Helpers.connection_pool_for_spec(config_spec)]
         end.to_h
 
@@ -55,8 +61,6 @@ module ActiveReplicas
 
         extend MonitorMixin
       end
-
-      delegate :proxy_configuration, to: :owner
 
       # Returns a list of *all* the connection pools owned by this handler.
       def connection_pool_list
