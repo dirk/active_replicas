@@ -6,24 +6,10 @@ describe ActiveReplicas::ProxyingConnectionPool do
   before do
     @primary_pool = double 'primary connection pool'
     @replica_pool = double 'replica connection pool'
+    @handler = double 'handler', primary_pool: @primary_pool,
+                                 replica_pools: { default0: @replica_pool }
 
-    allow(subject).to receive(:connection_pool_for_spec) do |spec|
-      case spec
-      when :primary then @primary_pool
-      when :replica then @replica_pool
-      else raise "Un-stubbed connection specification: #{spec}"
-      end
-    end
-
-    @subject = subject.new primary: :primary,
-                           replicas: { default0: :replica }
-  end
-
-  describe '#initialize' do
-    it 'sets up its primary and replica pools' do
-      expect(@subject.primary_pool).to eq @primary_pool
-      expect(@subject.replica_pools[:default0]).to eq @replica_pool
-    end
+    @subject = subject.new @handler
   end
 
   describe '#connection' do

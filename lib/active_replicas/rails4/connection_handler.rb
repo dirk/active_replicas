@@ -1,9 +1,15 @@
+require 'active_support/core_ext/module/delegation'
 require 'concurrent/map'
+
+require 'active_replicas/rails4/process_local_connection_handler'
 
 module ActiveReplicas
   module Rails4
     # Wraps around Rails' `ActiveRecord::ConnectionAdapters::ConnectionHandler`
     # to provide proxy wrappers around requested connections.
+    #
+    # This is the process-safe handler; it creates instances of
+    # `ThreadLocalConnectionHandler` to provide proxy wrappers for each thread.
     class ConnectionHandler
       attr_accessor :proxy_configuration
 
@@ -12,72 +18,28 @@ module ActiveReplicas
         # @delegate          = delegate
         # @overrides         = Set.new(overrides || [])
 
-        # Each process will get its own map of connection keys to database
-        # connection instances.
-        @process_to_connection_pool = Concurrent::Map.new
+        # Each process will get its own thread-safe handler.
+        @process_to_handler = Concurrent::Map.new
       end
 
-      def connection_pool_list
-        [ @process_to_connection_pool[Process.pid] ].compact
-      end
-
-      def establish_connection(owner, spec)
-        prefix = '[ActiveReplicas::Rails4::ConnectionHandler#establish_connection]'
-        ActiveRecord::Base.logger&.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
-        ActiveRecord::Base.logger&.info "#{prefix} Called from:\n" + Kernel.caller.first(5).map {|t| "  #{t}" }.join("\n")
-
-        proxying_connection_pool
-      end
-
-      def active_connections?
-        proxying_connection_pool.active_connection?
-      end
-
-      def clear_active_connections!
-        proxying_connection_pool.release_connection
-      end
-
-      def clear_reloadable_connections!
-        proxying_connection_pool.clear_reloadable_connections!
-      end
+      delegate :active_connections?, :clear_active_connections!,
+          :clear_all_connections!, :clear_reloadable_connections!,
+          :connected?, :connection_pool_list, :establish_connection,
+          :remove_connection, :retrieve_connection, :retrieve_connection_pool,
+        to: :retrieve_handler
 
       def clear_all_connections!
-        proxying_connection_pool.disconnect!
-      end
-
-      # Cribbed from:
-      #   https://github.com/rails/rails/blob/4-2-stable/activerecord/lib/active_record/connection_adapters/abstract/connection_pool.rb#L568
-      def retrieve_connection(klass)
-        pool = retrieve_connection_pool klass
-        raise ConnectionNotEstablished, "No connection pool for #{klass}" unless pool
-        conn = pool.connection
-        raise ConnectionNotEstablished, "No connection for #{klass} in connection pool" unless conn
-        conn
-      end
-
-      def connected?(klass)
-        pool = retrieve_connection_pool klass
-        pool && pool.connected?
-      end
-
-      def remove_connection(owner_klass)
-        remove_proxying_connection_pool
-      end
-
-      def retrieve_connection_pool(klass)
-        proxying_connection_pool
-      end
-
-      def remove_proxying_connection_pool
-        if proxying_pool = @process_to_connection_pool.delete(Process.pid)
-          proxying_pool.automatic_reconnect = false
-          proxying_pool.disconnect!
-          proxying_pool.primary_pool.spec.config
+        # We also want to clear the process's connection handler in case our
+        # configuration has been changed.
+        if handler = @process_to_handler.delete(Process.pid)
+          handler.clear_all_connections!
         end
       end
 
-      def proxying_connection_pool
-        @process_to_connection_pool[Process.pid] ||= ProxyingConnectionPool.new(@proxy_configuration)
+      # Returns a `ProcessLocalConnectionHandler` which is local to the
+      # current process.
+      def retrieve_handler
+        @process_to_handler[Process.pid] ||= ProcessLocalConnectionHandler.new(@proxy_configuration)
       end
     end
   end

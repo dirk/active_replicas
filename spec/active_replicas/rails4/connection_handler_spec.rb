@@ -22,4 +22,24 @@ describe ActiveReplicas::Rails4::ConnectionHandler, if: is_rails4 do
       expect(config).to eq({ adapter: 'sqlite3', database: 'tmp/primary.sqlite3' })
     end
   end
+
+  describe '#initialize' do
+    before do
+      @primary_pool = double 'primary connection pool'
+      @replica_pool = double 'replica connection pool'
+
+      allow(ActiveReplicas::Rails4::Helpers).to receive(:connection_pool_for_spec) do |spec|
+        case spec
+        when :primary then @primary_pool
+        when :replica then @replica_pool
+        else raise "Un-stubbed connection specification: #{spec}"
+        end
+      end
+
+      @subject = subject.new proxy_configuration: {
+                               primary: :primary,
+                               replicas: { default0: :replica }
+                             }
+    end
+  end
 end
