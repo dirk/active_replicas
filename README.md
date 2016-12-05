@@ -1,5 +1,7 @@
 # ActiveReplicas
 
+[![Build Status](https://travis-ci.org/dirk/active_replicas.svg?branch=master)](https://travis-ci.org/dirk/active_replicas)
+
 Drop-in read-replica querying in ActiveRecord. It proxies around ActiveRecord's connection to send read-only queries to replica databases; writes will automatically go to the primary and "stick" the request into using the primary for any further queries.
 
 This is heavily inspired by [Kickstarter's `replica_pools`](https://github.com/kickstarter/replica_pools) gem. It seeks to improve on that gem by better interfacing with ActiveRecord's connection pools.
