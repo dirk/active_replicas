@@ -36,6 +36,10 @@ A few things happen when you call [`hijack_active_record`](http://www.rubydoc.in
 
 The new connection handler manages connection pools for each configured primary and replica database(s). Externally it provides instances of [`ProxyingConnectionPool`](http://www.rubydoc.info/github/dirk/active_replicas/master/ActiveReplicas/ProxyingConnectionPool) in place of normal connection pools. Those proxying pools then forward connection methods to primary or replica pools.
 
+### Using it with Ruby on Rails
+
+ActiveReplicas works seamlessly within the Rails request lifecycle. It extends the [`clear_active_connections!` called in ActiveRecord's middleware](https://github.com/rails/rails/blob/4-2-stable/activerecord/lib/active_record/connection_adapters/abstract/connection_pool.rb#L645-L663) to not only clear the active connections (releasing them back to their respective pool) but also resets the primary/replica state. That way the next connection will start out using a replica.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on [GitHub][]. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
