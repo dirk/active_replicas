@@ -41,6 +41,9 @@ module ActiveReplicas
 
           clear_all_connections!
           initialize_pools
+
+          # Rails returns a connection pool.
+          retrieve_connection_pool owner
         end
       end
 
