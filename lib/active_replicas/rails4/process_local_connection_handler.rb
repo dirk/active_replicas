@@ -13,12 +13,7 @@ module ActiveReplicas
 
       def initialize(proxy_configuration)
         @proxy_configuration = proxy_configuration
-
-        @primary_pool = Helpers.connection_pool_for_spec @proxy_configuration[:primary]
-
-        @replica_pools = (@proxy_configuration[:replicas] || {}).map do |name, config_spec|
-          [name, Helpers.connection_pool_for_spec(config_spec)]
-        end.to_h
+        initialize_pools
 
         # Each thread gets its own `ProxyingConnectionPool`.
         @reserved_proxies = Concurrent::Map.new
@@ -33,10 +28,23 @@ module ActiveReplicas
 
       def establish_connection(owner, spec)
         prefix = '[ActiveReplicas::Rails4::ConnectionHandler#establish_connection]'
-        ActiveRecord::Base.logger&.warn "#{prefix} Ignoring spec for #{owner.inspect}: #{spec.inspect}"
-        ActiveRecord::Base.logger&.info "#{prefix} Called from:\n" + Kernel.caller.first(5).map {|t| "  #{t}" }.join("\n")
+        details = "#{spec.config.inspect} (owner: #{owner.inspect})"
 
-        current_proxy
+        synchronize do
+          if @proxy_configuration[:primary] == spec.config
+            ActiveRecord::Base.logger&.warn "#{prefix} Ignoring new spec as it matches existing primary spec: #{details}"
+          else
+            ActiveRecord::Base.logger&.warn "#{prefix} Overwriting connection spec: #{details}"
+            ActiveRecord::Base.logger&.info "#{prefix} Called from:\n" + Kernel.caller.map {|t| "  #{t}" }.join("\n")
+            @proxy_configuration = { primary: spec.config }
+          end
+
+          clear_all_connections!
+          initialize_pools
+
+          # Rails returns a connection pool.
+          retrieve_connection_pool owner
+        end
       end
 
       def active_connections?
@@ -113,6 +121,18 @@ module ActiveReplicas
 
       def current_thread_id
         Thread.current.object_id
+      end
+
+      private
+
+      # Sets up `@primary_pool` and `@replica_pools` from the current
+      # `@proxy_configuration`.
+      def initialize_pools
+        @primary_pool = Helpers.connection_pool_for_spec @proxy_configuration[:primary]
+
+        @replica_pools = (@proxy_configuration[:replicas] || {}).map do |name, config_spec|
+          [name, Helpers.connection_pool_for_spec(config_spec)]
+        end.to_h
       end
     end
   end

@@ -16,10 +16,14 @@ describe ActiveReplicas::Rails4::ConnectionHandler, if: is_rails4 do
 
   describe '#remove_connection' do
     it "turns off reconnects, disconnects, and returns the primary's config" do
-      @handler.establish_connection nil, nil
+      primary_config = { adapter: 'sqlite3', database: 'tmp/primary.sqlite3' }
+
+      spec = double 'connection specification', config: primary_config
+
+      @handler.establish_connection nil, spec
 
       config = @handler.remove_connection nil
-      expect(config).to eq({ adapter: 'sqlite3', database: 'tmp/primary.sqlite3' })
+      expect(config).to eq(primary_config)
     end
   end
 
