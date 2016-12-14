@@ -15,7 +15,7 @@ module ActiveReplicas
       sql   = payload[:sql]
       binds = nil
 
-      proxy = ActiveRecord::Base.connection_handler.proxying_connection_pool
+      proxy = ActiveRecord::Base.connection_handler.retrieve_handler.current_proxy
       connection_pool = proxy.pool_which_owns_connection payload[:connection_id]
       if connection_pool
         role =
