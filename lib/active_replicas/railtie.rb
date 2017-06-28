@@ -22,15 +22,17 @@ module ActiveReplicas
       [
         :active?, :cacheable_query, :case_sensitive_comparison,
         :case_sensitive_modifier, :case_insensitive_comparison,
-        :clear_query_cache, :column_name_for_operation, :columns,
+        :clear_query_cache, :column_exists?, :column_name_for_operation,
+        :columns, :combine_bind_parameters, :data_source_exists?,
         :disable_query_cache!, :disconnect!, :enable_query_cache!,
-        :exec_query, :prepared_statements, :query_cache_enabled, :quote,
-        :quote_column_name, :quote_string, :quote_table_name,
-        :quote_table_name_for_assignment, :raw_connection, :reconnect!,
-        :sanitize_limit, :schema_cache, :select, :select_all, :select_one,
-        :select_rows, :select_value, :select_values, :substitute_at,
-        :table_alias_for, :to_sql, :type_cast, :uncached, :valid_type?,
-        :verify!, :visitor
+        :exec_query, :lookup_cast_type_from_column,
+        :prepare_binds_for_database, :prepared_statements,
+        :query_cache_enabled, :quote, :quote_column_name, :quote_string,
+        :quote_table_name, :quote_table_name_for_assignment, :raw_connection,
+        :reconnect!, :sanitize_limit, :schema_cache, :select, :select_all,
+        :select_one, :select_rows, :select_value, :select_values,
+        :substitute_at, :table_alias_for, :to_sql, :type_cast, :uncached,
+        :valid_type?, :verify!, :visitor
       ]
     ).uniq
 
@@ -89,8 +91,10 @@ module ActiveReplicas
         end
       end
 
-      # Take over logging duties now that we're the main connection handler.
-      LogSubscriber.hijack_active_record
+      if ActiveRecord::VERSION::MAJOR == 4
+        # Take over logging duties now that we're the main connection handler.
+        LogSubscriber.hijack_active_record
+      end
     end
   end
 end
