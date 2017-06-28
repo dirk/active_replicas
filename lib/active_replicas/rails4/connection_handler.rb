@@ -13,10 +13,8 @@ module ActiveReplicas
     class ConnectionHandler
       attr_accessor :proxy_configuration
 
-      def initialize(proxy_configuration:, delegate: nil, overrides: nil)
+      def initialize(proxy_configuration:)
         @proxy_configuration = proxy_configuration
-        # @delegate          = delegate
-        # @overrides         = Set.new(overrides || [])
 
         # Each process will get its own thread-safe handler.
         @process_to_handler = Concurrent::Map.new

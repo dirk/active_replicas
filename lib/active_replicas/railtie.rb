@@ -81,10 +81,7 @@ module ActiveReplicas
       ProxyingConnection.generate_replica_delegations
       ProxyingConnection.generate_primary_delegations
 
-      @@connection_handler =
-        ConnectionHandler.new proxy_configuration: proxy_configuration,
-                              delegate: ActiveRecord::Base.connection_handler,
-                              overrides: overrides
+      @@connection_handler = ConnectionHandler.new proxy_configuration: proxy_configuration
 
       ActiveRecord::Base.class_eval do
         def self.connection_handler
