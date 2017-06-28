@@ -8,6 +8,8 @@ if defined? ActiveRecord
 
   if version == 4
     require 'active_replicas/rails4/connection_handler'
+  elsif version == 5
+    require 'active_replicas/rails5/connection_handler'
   else
     raise "Unsupported ActiveRecord version: #{version}"
   end
