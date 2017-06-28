@@ -91,10 +91,8 @@ module ActiveReplicas
         end
       end
 
-      if ActiveRecord::VERSION::MAJOR == 4
-        # Take over logging duties now that we're the main connection handler.
-        LogSubscriber.hijack_active_record
-      end
+      # Take over logging duties now that we're the main connection handler.
+      ActiveReplicas::LogSubscriber.hijack_active_record
     end
   end
 end
