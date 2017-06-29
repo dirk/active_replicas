@@ -45,8 +45,8 @@ module ActiveReplicas
         :quote_table_name, :quote_table_name_for_assignment, :raw_connection,
         :reconnect!, :sanitize_limit, :schema_cache, :select, :select_all,
         :select_one, :select_rows, :select_value, :select_values,
-        :substitute_at, :table_alias_for, :to_sql, :type_cast,
-        :type_casted_binds, :uncached, :valid_type?, :verify!, :visitor
+        :substitute_at, :supports_migrations?, :table_alias_for, :to_sql,
+        :type_cast, :uncached, :valid_type?, :verify!, :visitor
       ]
     ).uniq
 
@@ -72,10 +72,9 @@ module ActiveReplicas
     SUPPORTS_METHODS = [
       :supports_ddl_transactions?, :supports_explain?, :supports_extensions?,
       :supports_foreign_keys?, :supports_index_sort_order?,
-      :supports_materialized_views?, :supports_migrations?,
-      :supports_partial_index?, :supports_primary_key?, :supports_ranges?,
-      :supports_statement_cache?, :supports_transaction_isolation?,
-      :supports_views?
+      :supports_materialized_views?, :supports_partial_index?,
+      :supports_primary_key?, :supports_ranges?, :supports_statement_cache?,
+      :supports_transaction_isolation?, :supports_views?
     ]
 
     @@primary_delegated_methods = (
