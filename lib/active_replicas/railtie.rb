@@ -1,6 +1,20 @@
 require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveReplicas
+  module ControllerRuntime
+    extend ActiveSupport::Concern
+
+    def process_action(action, *args)
+      result = super
+
+      process_local_handler = ActiveReplicas::Railtie.connection_handler.retrieve_handler
+      thread_local_pool = process_local_handler.current_proxy
+      thread_local_pool.release_connection
+
+      result
+    end
+  end
+
   class Railtie < Rails::Railtie
     cattr_reader :connection_handler
 
@@ -31,8 +45,8 @@ module ActiveReplicas
         :quote_table_name, :quote_table_name_for_assignment, :raw_connection,
         :reconnect!, :sanitize_limit, :schema_cache, :select, :select_all,
         :select_one, :select_rows, :select_value, :select_values,
-        :substitute_at, :table_alias_for, :to_sql, :type_cast, :uncached,
-        :valid_type?, :verify!, :visitor
+        :substitute_at, :table_alias_for, :to_sql, :type_cast,
+        :type_casted_binds, :uncached, :valid_type?, :verify!, :visitor
       ]
     ).uniq
 
@@ -84,6 +98,10 @@ module ActiveReplicas
       ProxyingConnection.generate_primary_delegations
 
       @@connection_handler = ConnectionHandler.new proxy_configuration: proxy_configuration
+
+      ActionController::Base.class_eval do
+        include ActiveReplicas::ControllerRuntime
+      end
 
       ActiveRecord::Base.class_eval do
         def self.connection_handler
